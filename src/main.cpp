@@ -179,7 +179,8 @@ void loop() {
     Serial.printf("lux %d, red %d, green %d, blue %d\n", lux, red, green, blue);
     Serial.printf("lux2 %d, full %d, visible %d, ir %d\n", lux2, full, visible, ir);
  
-#define BUF_SIZE 4 + 4*5 + 11 + 1
+#define NUM_INTS 8
+#define BUF_SIZE NUM_INTS * (1  + 5) + 11 + 1
     char buf[BUF_SIZE];
 
     snprintf(buf, BUF_SIZE, "%hd %hd %hd %hd %lu %hd %hd %hd %hd", red, green, blue, lux, time(NULL), lux2, full, visible, ir);
