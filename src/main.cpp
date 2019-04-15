@@ -16,6 +16,9 @@ WiFiMulti wifiMulti;
 #include "tcs34725_sensor.h"
 TCS34725_Sensor tcs34725(MQTT_UPDATE_FREQUENCY, 0, 0, false);
 
+#include "tsl2561_sensor.h"
+TSL2561_Sensor tsl2561(MQTT_UPDATE_FREQUENCY, 0, 0, false);
+
 #include "uptime.h"
 Uptime uptime;
 
@@ -131,6 +134,9 @@ void setup() {
   tcs34725.begin();
   Serial.println("[tcs34725]");
 
+  tsl2561.begin();
+  Serial.println("[tsl2561]");
+
   update_mqtt.attach(MQTT_UPDATE_FREQUENCY, []() { update_mqtt_flag = true; });
   update_heartbeat.attach(HEARTBEAT_UPDATE_FREQUENCY, []() { update_heartbeat_flag = true; });
 
@@ -155,6 +161,7 @@ void loop() {
 
     uint16_t red = -1, green = -1, blue = -1;
     uint16_t lux = -1;
+    uint16_t lux2 = -1, ir = -1, full = -1, visible = -1;
 
     tcs34725.handle();
 
@@ -163,12 +170,19 @@ void loop() {
     blue = tcs34725.blue();
     lux = tcs34725.lux();
 
+    tsl2561.handle();
+    lux2 = tsl2561.lux();
+    full = tsl2561.full();
+    visible = tsl2561.visible();
+    ir = tsl2561.ir();
+
     Serial.printf("lux %d, red %d, green %d, blue %d\n", lux, red, green, blue);
+    Serial.printf("lux2 %d, full %d, visible %d, ir %d\n", lux2, full, visible, ir);
  
 #define BUF_SIZE 4 + 4*5 + 11 + 1
     char buf[BUF_SIZE];
 
-    snprintf(buf, BUF_SIZE, "%hd %hd %hd %hd %lu", red, green, blue, lux, time(NULL));
+    snprintf(buf, BUF_SIZE, "%hd %hd %hd %hd %lu %hd %hd %hd %hd", red, green, blue, lux, time(NULL), lux2, full, visible, ir);
     Serial.println(buf);
     mqtt_client.publish(MQTT_TOPIC, buf, true);
   }
